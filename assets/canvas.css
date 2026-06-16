@@ -1,0 +1,19 @@
+html,body{height:100%}
+body.canvas-game{overflow:hidden}
+.stage{position:fixed;inset:54px 0 0 0;display:grid;place-items:center;padding:14px}
+canvas{background:#0c0c1c;border:1px solid var(--panel-border);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.5);max-width:100%;max-height:100%;touch-action:none}
+.hud{position:fixed;top:64px;left:0;right:0;display:flex;justify-content:center;gap:26px;pointer-events:none;z-index:60}
+.hud .h{background:rgba(10,10,20,.6);border:1px solid var(--panel-border);backdrop-filter:blur(8px);padding:7px 16px;border-radius:999px;font-weight:800;font-size:.9rem}
+.hud .h span{color:var(--muted);font-weight:600;margin-right:6px;font-size:.78rem;text-transform:uppercase;letter-spacing:1px}
+.overlay{position:fixed;inset:54px 0 0 0;display:grid;place-items:center;z-index:80;background:rgba(8,8,18,.78);backdrop-filter:blur(6px);text-align:center;padding:20px}
+.overlay.hide{display:none}
+.panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:20px;padding:34px 30px;max-width:380px;box-shadow:var(--shadow)}
+.panel .big{font-size:3rem;margin-bottom:6px}
+.panel h2{font-size:1.5rem;margin-bottom:8px}
+.panel p{color:var(--muted);font-size:.92rem;line-height:1.55;margin-bottom:8px}
+.panel .score-line{font-size:1.05rem;color:#fff;margin:12px 0}
+.panel .score-line b{color:var(--neon2);font-size:1.5rem}
+.btn{display:inline-block;cursor:pointer;border:none;font-family:inherit;font-weight:800;font-size:1rem;color:#fff;padding:13px 30px;border-radius:12px;background:linear-gradient(135deg,var(--neon),var(--neon2));box-shadow:0 8px 24px rgba(124,92,255,.45);transition:.15s;margin-top:8px}
+.btn:hover{transform:translateY(-2px)}
+.keyhint{margin-top:16px;font-size:.78rem;color:var(--muted)}
+.keyhint kbd{background:rgba(255,255,255,.08);border:1px solid var(--panel-border);border-radius:6px;padding:2px 8px;font-family:inherit;margin:0 2px}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Minigame Market — 10 Game Mini Gratis</title>
+<meta name="description" content="Kumpulan 10 minigame ringan (clicker & platformer) yang bisa dimainkan langsung di browser.">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .card.idle{--accent:var(--yellow);--cardglow:radial-gradient(circle at 30% 0%,rgba(255,210,63,.16),transparent 60%)}
+  .card.platformer{--accent:var(--neon2);--cardglow:radial-gradient(circle at 30% 0%,rgba(0,229,255,.16),transparent 60%)}
+  .card.action{--accent:var(--pink);--cardglow:radial-gradient(circle at 30% 0%,rgba(255,77,141,.16),transparent 60%)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;width:100%">
+    <div class="brand"><span class="logo">👾</span> <span>Minigame&nbsp;<b>Market</b></span></div>
+    <span class="chip">10 game · 100% gratis · main di browser</span>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <span class="eyebrow">Arcade Mini · HTML5</span>
+  <h1>Main <span>10 Minigame</span><br>langsung di browser</h1>
+  <p>Koleksi game ringan bertema clicker &amp; platformer. Nggak perlu install, nggak perlu login — tinggal pilih, klik, main. Progress idle tersimpan otomatis di perangkatmu.</p>
+  <div class="stats">
+    <div><b>10</b><span>Game</span></div>
+    <div><b>5</b><span>Idle / Clicker</span></div>
+    <div><b>5</b><span>Platformer / Action</span></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="filters" id="filters">
+    <button class="filter active" data-f="all">Semua</button>
+    <button class="filter" data-f="idle">Idle / Clicker</button>
+    <button class="filter" data-f="platformer">Platformer</button>
+    <button class="filter" data-f="action">Action</button>
+  </div>
+
+  <main class="grid" id="grid"></main>
+</div>
+
+<footer class="site wrap">
+  Dibuat dengan ❤️ · Minigame Market · Semua game 100% static, siap di-deploy ke GitHub Pages.
+</footer>
+
+<script>
+const GAMES=[
+  {f:'idle',ico:'🍪',title:'Snack Tycoon',genre:'Idle Clicker',stars:'⭐',file:'games/snack-tycoon.html',desc:'Klik camilan buat dapat koin, beli oven & pabrik biar produksi jalan sendiri.'},
+  {f:'idle',ico:'🚀',title:'Cosmic Miner',genre:'Space Idle',stars:'⭐⭐',file:'games/cosmic-miner.html',desc:'Tambang asteroid, beli drone otomatis, dan unlock planet baru untuk multiplier.'},
+  {f:'action',ico:'🐉',title:'Monster Tap RPG',genre:'Clicker RPG',stars:'⭐⭐⭐',file:'games/monster-tap.html',desc:'Klik buat serang monster, rekrut hero auto-DPS, naik stage & lawan boss.'},
+  {f:'idle',ico:'☕',title:'Kopi Kita',genre:'Coffee Idle',stars:'⭐⭐',file:'games/kopi-kita.html',desc:'Kelola kedai kopi: seduh, layani pelanggan, hire barista, unlock menu baru.'},
+  {f:'idle',ico:'🌱',title:'Tiny Garden',genre:'Idle Grow',stars:'⭐⭐',file:'games/tiny-garden.html',desc:'Siram & panen tanaman di grid kebun, pasang sprinkler, unlock tanaman mahal.'},
+  {f:'platformer',ico:'🟩',title:'Jumpy Box',genre:'Platformer 2D',stars:'⭐⭐',file:'games/jumpy-box.html',desc:'Platformer fisika klasik: lompat antar platform, hindari duri, capai bendera.'},
+  {f:'platformer',ico:'🏃',title:'Pixel Dash',genre:'Endless Runner',stars:'⭐⭐',file:'games/pixel-dash.html',desc:'Lari otomatis, lompat hindari rintangan. Makin lama makin cepat & adiktif.'},
+  {f:'platformer',ico:'🥷',title:'Ninja Leap',genre:'Wall-Jump',stars:'⭐⭐⭐',file:'games/ninja-leap.html',desc:'Wall-jump & dash naik lewat dinding sempit, hindari duri, kumpulkan koin.'},
+  {f:'action',ico:'👾',title:'Click Defender',genre:'Tap Survival',stars:'⭐⭐⭐',file:'games/click-defender.html',desc:'Klik musuh yang menyerbu base-mu, pasang turret otomatis, bertahan tiap wave.'},
+  {f:'platformer',ico:'🌋',title:'Lava Climb',genre:'Vertical Climb',stars:'⭐⭐',file:'games/lava-climb.html',desc:'Lava terus naik! Lompat ke platform makin tinggi biar nggak kemakan lava.'}
+];
+const grid=document.getElementById('grid');
+function render(filter){
+  grid.innerHTML='';
+  GAMES.filter(g=>filter==='all'||g.f===filter).forEach(g=>{
+    const a=document.createElement('a');
+    a.href=g.file;a.className='card '+g.f;
+    a.innerHTML=`<div class="ico">${g.ico}</div>
+      <h3>${g.title}</h3>
+      <div class="genre">${g.genre}</div>
+      <p>${g.desc}</p>
+      <div class="foot"><span class="stars">${g.stars}</span>
+      <span class="play">Main <span class="arr">→</span></span></div>`;
+    grid.appendChild(a);
+  });
+}
+document.getElementById('filters').addEventListener('click',e=>{
+  const b=e.target.closest('.filter');if(!b)return;
+  document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');render(b.dataset.f);
+});
+render('all');
+</script>
+</body>
+</html>

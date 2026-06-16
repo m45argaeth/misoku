@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tiny Garden</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/idle.css">
+</head>
+<body>
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">🌱 Tiny Garden</span>
+  <button class="reset" id="resetBtn">Reset</button>
+</div>
+<div id="game"></div>
+<script src="../assets/idle.js"></script>
+<script>
+IdleGame.start({
+  key:'tiny-garden',name:'Tiny Garden',
+  theme:{accent:'#3fe08a',glow:'radial-gradient(circle at 50% 0%,rgba(63,224,138,.22),transparent 60%)'},
+  currency:{name:'Koin Kebun',icon:'🪙'},
+  clickIcon:'🌱',clickHint:'Klik untuk menyiram & memanen!',baseClick:1,
+  upgrades:[
+    {id:'can',name:'Gembor Air',icon:'🚿',desc:'+2 per panen',baseCost:18,costMul:1.15,clickAdd:2},
+    {id:'fert',name:'Pupuk Ajaib',icon:'💩',desc:'+9 per panen',baseCost:220,costMul:1.17,clickAdd:9},
+    {id:'rare',name:'Bibit Langka',icon:'🌺',desc:'Panen x2 lebih bernilai',baseCost:2600,costMul:1.6,clickMult:2}
+  ],
+  producers:[
+    {id:'sprinkler',name:'Sprinkler',icon:'💦',desc:'+2/dtk',baseCost:55,costMul:1.17,cps:2},
+    {id:'green',name:'Rumah Kaca',icon:'🏡',desc:'+13/dtk',baseCost:600,costMul:1.18,cps:13},
+    {id:'orchard',name:'Kebun Buah',icon:'🌳',desc:'+75/dtk',baseCost:7500,costMul:1.2,cps:75},
+    {id:'farm',name:'Pertanian Besar',icon:'🚜',desc:'+420/dtk',baseCost:62000,costMul:1.21,cps:420}
+  ]
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kopi Kita</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/idle.css">
+</head>
+<body>
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">☕ Kopi Kita</span>
+  <button class="reset" id="resetBtn">Reset</button>
+</div>
+<div id="game"></div>
+<script src="../assets/idle.js"></script>
+<script>
+IdleGame.start({
+  key:'kopi-kita',name:'Kopi Kita',
+  theme:{accent:'#c08457',glow:'radial-gradient(circle at 50% 0%,rgba(192,132,87,.28),transparent 60%)'},
+  currency:{name:'Rupiah',icon:'💵'},
+  clickIcon:'☕',clickHint:'Klik untuk menyeduh & menjual kopi!',baseClick:1,
+  upgrades:[
+    {id:'grinder',name:'Grinder Manual',icon:'⚙️',desc:'+2 per seduhan',baseCost:20,costMul:1.15,clickAdd:2},
+    {id:'latte',name:'Menu Latte',icon:'🥛',desc:'+10 per seduhan',baseCost:250,costMul:1.17,clickAdd:10},
+    {id:'coldbrew',name:'Cold Brew Premium',icon:'🧊',desc:'Seduhan x2 lebih mahal',baseCost:3000,costMul:1.6,clickMult:2}
+  ],
+  producers:[
+    {id:'barista',name:'Barista',icon:'🧑‍🍳',desc:'+3/dtk',baseCost:75,costMul:1.17,cps:3},
+    {id:'machine',name:'Mesin Espresso',icon:'🔌',desc:'+15/dtk',baseCost:700,costMul:1.18,cps:15},
+    {id:'branch',name:'Cabang Baru',icon:'🏪',desc:'+85/dtk',baseCost:9000,costMul:1.2,cps:85},
+    {id:'franchise',name:'Franchise Nasional',icon:'🏙️',desc:'+450/dtk',baseCost:70000,costMul:1.21,cps:450}
+  ]
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Snack Tycoon</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/idle.css">
+</head>
+<body>
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">🍪 Snack Tycoon</span>
+  <button class="reset" id="resetBtn">Reset</button>
+</div>
+<div id="game"></div>
+<script src="../assets/idle.js"></script>
+<script>
+IdleGame.start({
+  key:'snack-tycoon',name:'Snack Tycoon',
+  theme:{accent:'#ffd23f',glow:'radial-gradient(circle at 50% 0%,rgba(255,210,63,.22),transparent 60%)'},
+  currency:{name:'Koin',icon:'🪙'},
+  clickIcon:'🍪',clickHint:'Klik camilannya buat dapat koin!',baseClick:1,
+  upgrades:[
+    {id:'finger',name:'Jari Cepat',icon:'👆',desc:'+1 koin per klik',baseCost:15,costMul:1.15,clickAdd:1},
+    {id:'glove',name:'Sarung Tangan',icon:'🧤',desc:'+5 koin per klik',baseCost:120,costMul:1.16,clickAdd:5},
+    {id:'golden',name:'Sendok Emas',icon:'🥄',desc:'Klik x2 lebih kuat',baseCost:1500,costMul:1.6,clickMult:2}
+  ],
+  producers:[
+    {id:'cursor',name:'Auto-Clicker',icon:'🖥️',desc:'+1 koin/dtk',baseCost:50,costMul:1.17,cps:1},
+    {id:'oven',name:'Oven Snack',icon:'🔥',desc:'+6 koin/dtk',baseCost:400,costMul:1.18,cps:6},
+    {id:'cart',name:'Gerobak Jajan',icon:'🛒',desc:'+30 koin/dtk',baseCost:3000,costMul:1.19,cps:30},
+    {id:'factory',name:'Pabrik Snack',icon:'🏭',desc:'+150 koin/dtk',baseCost:22000,costMul:1.2,cps:150}
+  ]
+});
+</script>
+</body>
+</html>

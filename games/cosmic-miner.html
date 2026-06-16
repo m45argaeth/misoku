@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cosmic Miner</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/idle.css">
+</head>
+<body>
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">🚀 Cosmic Miner</span>
+  <button class="reset" id="resetBtn">Reset</button>
+</div>
+<div id="game"></div>
+<script src="../assets/idle.js"></script>
+<script>
+IdleGame.start({
+  key:'cosmic-miner',name:'Cosmic Miner',
+  theme:{accent:'#7c5cff',glow:'radial-gradient(circle at 50% 0%,rgba(124,92,255,.25),transparent 60%)'},
+  currency:{name:'Mineral',icon:'💎'},
+  clickIcon:'☄️',clickHint:'Klik asteroid untuk menambang mineral!',baseClick:1,
+  upgrades:[
+    {id:'pick',name:'Bor Laser',icon:'🔦',desc:'+2 mineral per klik',baseCost:25,costMul:1.15,clickAdd:2},
+    {id:'plasma',name:'Plasma Cutter',icon:'⚡',desc:'+12 mineral per klik',baseCost:300,costMul:1.17,clickAdd:12},
+    {id:'core',name:'Reaktor Inti',icon:'☢️',desc:'Klik x2 lebih kuat',baseCost:4000,costMul:1.6,clickMult:2}
+  ],
+  producers:[
+    {id:'drone',name:'Drone Tambang',icon:'🛸',desc:'+2 mineral/dtk',baseCost:60,costMul:1.17,cps:2},
+    {id:'rig',name:'Rig Otomatis',icon:'🛰️',desc:'+12 mineral/dtk',baseCost:650,costMul:1.18,cps:12},
+    {id:'planet',name:'Koloni Planet',icon:'🪐',desc:'+70 mineral/dtk',baseCost:8000,costMul:1.2,cps:70},
+    {id:'galaxy',name:'Galactic Hub',icon:'🌌',desc:'+400 mineral/dtk',baseCost:65000,costMul:1.21,cps:400}
+  ]
+});
+</script>
+</body>
+</html>

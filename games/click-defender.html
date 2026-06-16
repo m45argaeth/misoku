@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Click Defender</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/canvas.css">
+<style>.shopbar{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:10px;padding:10px;background:linear-gradient(0deg,rgba(10,10,20,.92),transparent);z-index:60;flex-wrap:wrap}
+.ubtn{cursor:pointer;border:1px solid var(--panel-border);background:rgba(255,255,255,.04);color:var(--text);padding:8px 14px;border-radius:10px;font-family:inherit;font-weight:700;font-size:.8rem;transition:.15s}
+.ubtn:hover:not(:disabled){border-color:var(--neon)}.ubtn:disabled{opacity:.4;cursor:not-allowed}.ubtn b{color:#3fe08a}</style>
+</head>
+<body class="canvas-game">
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">👾 Click Defender</span>
+  <button class="reset" id="resetBtn">Reset</button>
+</div>
+<div class="hud">
+  <div class="h"><span>Wave</span><b id="wave">1</b></div>
+  <div class="h"><span>HP Base</span><b id="hp">100</b></div>
+  <div class="h"><span>💰</span><b id="gold">0</b></div>
+</div>
+<div class="stage"><canvas id="c" width="640" height="480"></canvas></div>
+<div class="shopbar" id="shop"></div>
+<div class="overlay" id="ov">
+  <div class="panel">
+    <div class="big">👾</div>
+    <h2>Click Defender</h2>
+    <p>Klik musuh sebelum mereka sampai ke base di tengah. Beli turret &amp; upgrade dari emas yang kamu dapat.</p>
+    <button class="btn" id="startBtn">Mulai Bertahan</button>
+    <div class="keyhint">Klik/tap musuh untuk menghancurkannya</div>
+  </div>
+</div>
+<script>
+const KEY='mm_click-defender-best';
+const c=document.getElementById('c'),x=c.getContext('2d');
+const W=c.width,H=c.height,CX=W/2,CY=H/2;
+let running=false,enemies,particles,gold,hp,wave,clickDmg,turrets,turretCd,spawnQueue,spawnT,betweenWave,waveTimer;
+const upgrades=[
+  {id:'dmg',name:'Klik DMG',icon:'⚔️',base:30,get lvl(){return st.dmg;},apply(){st.dmg++;}},
+  {id:'turret',name:'Turret',icon:'🔫',base:60,get lvl(){return st.turret;},apply(){st.turret++;}},
+  {id:'regen',name:'Repair Base',icon:'❤️',base:40,get lvl(){return st.regen;},apply(){hp=Math.min(st.maxhp,hp+25);}}
+];
+let st={dmg:0,turret:0,regen:0,maxhp:100};
+function uCost(u){return Math.ceil(u.base*Math.pow(1.4,u.lvl));}
+function reset(){enemies=[];particles=[];gold=0;hp=100;st={dmg:0,turret:0,regen:0,maxhp:100};wave=0;turretCd=0;betweenWave=true;waveTimer=90;buildShop();nextWave();}
+function nextWave(){wave++;document.getElementById('wave').textContent=wave;const n=4+wave*2;spawnQueue=n;spawnT=0;betweenWave=false;}
+function spawnEnemy(){const edge=Math.floor(Math.random()*4);let ex,ey;if(edge===0){ex=Math.random()*W;ey=-20;}else if(edge===1){ex=W+20;ey=Math.random()*H;}else if(edge===2){ex=Math.random()*W;ey=H+20;}else{ex=-20;ey=Math.random()*H;}
+  const boss=wave%5===0&&spawnQueue===1;const hpv=boss?40+wave*12:6+wave*3;
+  enemies.push({x:ex,y:ey,hp:hpv,max:hpv,r:boss?30:16,spd:(0.45+wave*0.025)*(boss?0.6:1),boss:boss,emoji:boss?'👹':['👾','👻','🧟','👽'][wave%4]});}
+function hitEnemy(en,dmg,px,py){en.hp-=dmg;for(let i=0;i<4;i++)particles.push({x:px||en.x,y:py||en.y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:16,col:'255,77,141'});if(en.hp<=0){gold+=en.boss?20+wave*3:2+Math.floor(wave/2);en.dead=true;for(let i=0;i<10;i++)particles.push({x:en.x,y:en.y,vx:(Math.random()-.5)*7,vy:(Math.random()-.5)*7,life:24,col:'255,210,63'});}}
+function end(){running=false;const b=+(localStorage.getItem(KEY)||0);if(wave>b)localStorage.setItem(KEY,wave);const ov=document.getElementById('ov');ov.querySelector('.panel').innerHTML=`<div class="big">💀</div><h2>Base Hancur</h2><div class="score-line">Bertahan sampai wave <b>${wave}</b></div><p>Rekor wave: ${Math.max(wave,b)}</p><button class="btn" id="startBtn">Main Lagi</button>`;ov.classList.remove('hide');bind();}
+function loop(){
+  if(!running)return;
+  x.clearRect(0,0,W,H);
+  const g=x.createRadialGradient(CX,CY,30,CX,CY,W*0.6);g.addColorStop(0,'#1a1438');g.addColorStop(1,'#0c0c1c');x.fillStyle=g;x.fillRect(0,0,W,H);
+  // base
+  x.save();x.shadowColor='#7c5cff';x.shadowBlur=24;x.fillStyle='#7c5cff';x.beginPath();x.arc(CX,CY,26,0,7);x.fill();x.restore();x.fillStyle='#fff';x.font='24px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🏰',CX,CY+1);
+  // hp ring
+  x.strokeStyle='#ff4d8d';x.lineWidth=4;x.beginPath();x.arc(CX,CY,32,-Math.PI/2,-Math.PI/2+Math.PI*2*(hp/st.maxhp));x.stroke();
+  // waves spawn
+  if(!betweenWave){spawnT--;if(spawnQueue>0&&spawnT<=0){spawnEnemy();spawnQueue--;spawnT=Math.max(18,46-wave);}if(spawnQueue===0&&enemies.length===0){betweenWave=true;waveTimer=90;gold+=5+wave;}}
+  else{waveTimer--;if(waveTimer<=0)nextWave();}
+  // turret auto-fire
+  turretCd--;if(st.turret>0&&turretCd<=0&&enemies.length){let near=null,nd=1e9;enemies.forEach(e=>{const d=Math.hypot(e.x-CX,e.y-CY);if(d<nd){nd=d;near=e;}});if(near){hitEnemy(near,2+st.turret);particles.push({x:CX,y:CY,vx:(near.x-CX)/15,vy:(near.y-CY)/15,life:12,col:'0,229,255',line:near});}turretCd=Math.max(8,26-st.turret*2);}
+  // enemies
+  for(let i=enemies.length-1;i>=0;i--){const e=enemies[i];if(e.dead){enemies.splice(i,1);continue;}const a=Math.atan2(CY-e.y,CX-e.x);e.x+=Math.cos(a)*e.spd;e.y+=Math.sin(a)*e.spd;
+    if(Math.hypot(e.x-CX,e.y-CY)<32){hp-=e.boss?20:6;e.dead=true;if(hp<=0){renderHud();end();return;}}
+    x.font=(e.r*2)+'px sans-serif';x.fillText(e.emoji,e.x,e.y);
+    if(e.hp<e.max){x.fillStyle='rgba(0,0,0,.5)';x.fillRect(e.x-e.r,e.y-e.r-8,e.r*2,4);x.fillStyle='#3fe08a';x.fillRect(e.x-e.r,e.y-e.r-8,e.r*2*(e.hp/e.max),4);}
+  }
+  // particles
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life--;x.fillStyle='rgba('+p.col+','+(p.life/20)+')';x.fillRect(p.x-2,p.y-2,4,4);if(p.life<=0)particles.splice(i,1);}
+  // between-wave text
+  if(betweenWave){x.fillStyle='#fff';x.font='bold 20px Trebuchet MS';x.fillText('Wave '+(wave+1)+' dalam '+Math.ceil(waveTimer/60*1.5)+'...',CX,60);}
+  renderHud();updateShop();
+  requestAnimationFrame(loop);
+}
+function renderHud(){document.getElementById('hp').textContent=Math.max(0,Math.ceil(hp));document.getElementById('gold').textContent=gold;}
+function buildShop(){const sh=document.getElementById('shop');sh.innerHTML='';upgrades.forEach(u=>{const b=document.createElement('button');b.className='ubtn';b.id='u-'+u.id;b.onclick=()=>{const cost=uCost(u);if(gold>=cost){gold-=cost;u.apply();}};sh.appendChild(b);});}
+function updateShop(){upgrades.forEach(u=>{const cost=uCost(u);const b=document.getElementById('u-'+u.id);b.disabled=gold<cost;b.innerHTML=`${u.icon} ${u.name} ${u.id!=='regen'?'Lv'+(u.lvl+1):''} · <b>💰${cost}</b>`;});}
+c.addEventListener('pointerdown',e=>{if(!running)return;const r=c.getBoundingClientRect();const mx=(e.clientX-r.left)*(W/r.width),my=(e.clientY-r.top)*(H/r.height);let hitOne=false;for(let i=enemies.length-1;i>=0;i--){const en=enemies[i];if(Math.hypot(en.x-mx,en.y-my)<en.r+6){hitEnemy(en,1+st.dmg*2,mx,my);hitOne=true;break;}}});
+function start(){document.getElementById('ov').classList.add('hide');reset();running=true;loop();}
+function bind(){document.getElementById('startBtn').onclick=start;}
+bind();x.textAlign='center';x.textBaseline='middle';
+document.getElementById('resetBtn').onclick=()=>{localStorage.removeItem(KEY);};
+</script>
+</body>
+</html>

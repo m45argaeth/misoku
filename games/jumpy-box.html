@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Jumpy Box</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/canvas.css">
+<style>.touch-ctrl{position:fixed;bottom:14px;left:0;right:0;display:flex;justify-content:space-between;padding:0 16px;z-index:60;pointer-events:none}
+.touch-ctrl .grp{display:flex;gap:10px;pointer-events:auto}
+.tbtn{width:62px;height:62px;border-radius:16px;border:1px solid var(--panel-border);background:rgba(255,255,255,.06);color:#fff;font-size:1.5rem;font-weight:800;display:grid;place-items:center;user-select:none}
+@media(hover:hover){.touch-ctrl{display:none}}</style>
+</head>
+<body class="canvas-game">
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">🟩 Jumpy Box</span>
+  <button class="reset" id="resetBtn">Ulang Level</button>
+</div>
+<div class="hud">
+  <div class="h"><span>Level</span><b id="lvl">1</b></div>
+  <div class="h"><span>Percobaan</span><b id="tries">0</b></div>
+</div>
+<div class="stage"><canvas id="c" width="760" height="440"></canvas></div>
+<div class="touch-ctrl">
+  <div class="grp"><div class="tbtn" id="bl">←</div><div class="tbtn" id="br">→</div></div>
+  <div class="grp"><div class="tbtn" id="bj">⬆</div></div>
+</div>
+<div class="overlay" id="ov">
+  <div class="panel">
+    <div class="big">🟩</div>
+    <h2>Jumpy Box</h2>
+    <p>Lompat antar platform, hindari duri merah, capai bendera 🏁 untuk menang.</p>
+    <button class="btn" id="startBtn">Mulai Main</button>
+    <div class="keyhint"><kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> gerak · <kbd>Spasi</kbd>/<kbd>↑</kbd>/<kbd>W</kbd> lompat</div>
+  </div>
+</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const W=c.width,H=c.height;
+// levels: platforms[x,y,w,h], spikes[x,y,w], flag[x,y], start[x,y]
+const LEVELS=[
+  {start:[40,360],flag:[700,300],plats:[[0,400,300,40],[340,400,420,40],[300,320,90,18],[470,260,90,18],[620,330,140,18]],spikes:[[300,388,40]]},
+  {start:[30,360],flag:[710,120],plats:[[0,400,200,40],[250,360,90,18],[400,300,90,18],[250,240,90,18],[420,180,90,18],[620,160,140,18],[560,400,200,40]],spikes:[[450,388,100],[250,348,40]]},
+  {start:[30,360],flag:[700,360],plats:[[0,400,160,40],[210,400,80,40],[340,400,80,40],[470,400,80,40],[600,400,160,40],[280,300,70,16],[420,250,70,16],[560,300,70,16]],spikes:[[160,388,50],[290,388,50],[420,388,50],[550,388,50]]}
+];
+let lvl=0,tries=0,running=false,p,keys={l:false,r:false,j:false},won;
+function loadLevel(){const L=LEVELS[lvl];p={x:L.start[0],y:L.start[1],w:30,h:30,vx:0,vy:0,grounded:false};won=false;document.getElementById('lvl').textContent=lvl+1;}
+function reset(){lvl=0;tries=0;document.getElementById('tries').textContent=0;loadLevel();}
+function die(){tries++;document.getElementById('tries').textContent=tries;const L=LEVELS[lvl];p.x=L.start[0];p.y=L.start[1];p.vx=p.vy=0;}
+function win(){if(lvl+1<LEVELS.length){lvl++;loadLevel();}else{running=false;const ov=document.getElementById('ov');ov.querySelector('.panel').innerHTML=`<div class="big">🏆</div><h2>Semua Level Selesai!</h2><div class="score-line">Total percobaan: <b>${tries}</b></div><button class="btn" id="startBtn">Main Lagi</button>`;ov.classList.remove('hide');bind();}}
+function loop(){
+  if(!running)return;
+  const L=LEVELS[lvl];
+  // input
+  if(keys.l)p.vx=-4.2;else if(keys.r)p.vx=4.2;else p.vx*=0.7;
+  if(keys.j&&p.grounded){p.vy=-11.4;p.grounded=false;}
+  p.vy+=0.6;if(p.vy>14)p.vy=14;
+  p.x+=p.vx;
+  // horizontal collision
+  L.plats.forEach(pl=>{if(rectHit(p,pl)){if(p.vx>0)p.x=pl[0]-p.w;else if(p.vx<0)p.x=pl[0]+pl[2];p.vx=0;}});
+  p.y+=p.vy;p.grounded=false;
+  L.plats.forEach(pl=>{if(rectHit(p,pl)){if(p.vy>0){p.y=pl[1]-p.h;p.grounded=true;}else if(p.vy<0)p.y=pl[1]+pl[3];p.vy=0;}});
+  if(p.x<0)p.x=0;if(p.x+p.w>W)p.x=W-p.w;
+  if(p.y>H+40)die();
+  // spikes
+  L.spikes.forEach(s=>{if(p.x+p.w>s[0]&&p.x<s[0]+s[2]&&p.y+p.h>s[1]&&p.y+p.h<s[1]+18)die();});
+  // flag
+  if(p.x+p.w>L.flag[0]&&p.x<L.flag[0]+30&&p.y+p.h>L.flag[1]&&p.y<L.flag[1]+50)win();
+  draw(L);
+  requestAnimationFrame(loop);
+}
+function rectHit(a,r){return a.x<r[0]+r[2]&&a.x+a.w>r[0]&&a.y<r[1]+r[3]&&a.y+a.h>r[1];}
+function draw(L){
+  x.clearRect(0,0,W,H);const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#101030');g.addColorStop(1,'#0c0c1c');x.fillStyle=g;x.fillRect(0,0,W,H);
+  // platforms
+  L.plats.forEach(pl=>{x.fillStyle='#7c5cff';rr(pl[0],pl[1],pl[2],pl[3],5);x.fill();x.fillStyle='rgba(255,255,255,.08)';x.fillRect(pl[0],pl[1],pl[2],3);});
+  // spikes
+  x.fillStyle='#ff4d5e';L.spikes.forEach(s=>{const n=Math.floor(s[2]/12);for(let i=0;i<n;i++){x.beginPath();x.moveTo(s[0]+i*12,s[1]+18);x.lineTo(s[0]+i*12+6,s[1]);x.lineTo(s[0]+i*12+12,s[1]+18);x.fill();}});
+  // flag
+  x.fillStyle='#888';x.fillRect(L.flag[0],L.flag[1],4,50);x.fillStyle='#3fe08a';x.beginPath();x.moveTo(L.flag[0]+4,L.flag[1]);x.lineTo(L.flag[0]+30,L.flag[1]+9);x.lineTo(L.flag[0]+4,L.flag[1]+18);x.fill();
+  // player
+  x.fillStyle='#ffd23f';rr(p.x,p.y,p.w,p.h,7);x.fill();x.fillStyle='#101030';const ed=p.vx<-.2?-3:p.vx>.2?3:0;x.fillRect(p.x+8+ed,p.y+9,5,6);x.fillRect(p.x+p.w-13+ed,p.y+9,5,6);
+}
+function rr(rx,ry,rw,rh,r){x.beginPath();x.moveTo(rx+r,ry);x.arcTo(rx+rw,ry,rx+rw,ry+rh,r);x.arcTo(rx+rw,ry+rh,rx,ry+rh,r);x.arcTo(rx,ry+rh,rx,ry,r);x.arcTo(rx,ry,rx+rw,ry,r);x.closePath();}
+function start(){document.getElementById('ov').classList.add('hide');reset();running=true;loop();}
+function bind(){document.getElementById('startBtn').onclick=start;}
+bind();
+window.addEventListener('keydown',e=>{if(['ArrowLeft','KeyA'].includes(e.code))keys.l=true;if(['ArrowRight','KeyD'].includes(e.code))keys.r=true;if(['Space','ArrowUp','KeyW'].includes(e.code)){e.preventDefault();keys.j=true;}});
+window.addEventListener('keyup',e=>{if(['ArrowLeft','KeyA'].includes(e.code))keys.l=false;if(['ArrowRight','KeyD'].includes(e.code))keys.r=false;if(['Space','ArrowUp','KeyW'].includes(e.code))keys.j=false;});
+function hold(id,k){const el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;});el.addEventListener('pointerup',()=>keys[k]=false);el.addEventListener('pointerleave',()=>keys[k]=false);}
+hold('bl','l');hold('br','r');hold('bj','j');
+document.getElementById('resetBtn').onclick=()=>{if(running)die();};
+</script>
+</body>
+</html>

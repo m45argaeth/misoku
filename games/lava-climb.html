@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lava Climb</title>
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="stylesheet" href="../assets/canvas.css">
+</head>
+<body class="canvas-game">
+<div class="game-top">
+  <a class="back" href="../index.html">← Hub</a>
+  <span class="gname">🌋 Lava Climb</span>
+  <button class="reset" id="resetBtn">Reset Skor</button>
+</div>
+<div class="hud">
+  <div class="h"><span>Tinggi</span><b id="score">0</b></div>
+  <div class="h"><span>Terbaik</span><b id="best">0</b></div>
+</div>
+<div class="stage"><canvas id="c" width="420" height="560"></canvas></div>
+<div class="overlay" id="ov">
+  <div class="panel">
+    <div class="big">🌋</div>
+    <h2>Lava Climb</h2>
+    <p>Lava terus naik! Memantul ke platform makin tinggi biar nggak kemakan lava.</p>
+    <button class="btn" id="startBtn">Mulai Memanjat</button>
+    <div class="keyhint"><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd> · di HP: miringkan / sentuh kiri-kanan</div>
+  </div>
+</div>
+<script>
+const KEY='mm_lava-climb-best';
+const c=document.getElementById('c'),x=c.getContext('2d');
+const W=c.width,H=c.height;
+let best=+(localStorage.getItem(KEY)||0);document.getElementById('best').textContent=best;
+let running=false,p,plats,lava,camY,score,left,right,maxClimb;
+const GRAV=0.42,JUMP=-12.4;
+function makePlat(y){const types=['static','static','static','move','break'];const t=types[Math.floor(Math.random()*types.length)];return{x:Math.random()*(W-72),y:y,w:72,h:14,t:t,dir:Math.random()<.5?-1:1,used:false};}
+function reset(){
+  p={x:W/2-16,y:H-120,w:32,h:32,vy:JUMP,vx:0};
+  plats=[{x:W/2-40,y:H-70,w:80,h:14,t:'static'}];
+  let y=H-150;for(let i=0;i<10;i++){plats.push(makePlat(y));y-=Math.random()*40+62;}
+  lava=H+40;camY=0;score=0;maxClimb=0;left=right=false;
+}
+function end(){running=false;if(score>best){best=score;localStorage.setItem(KEY,best);}document.getElementById('best').textContent=best;const ov=document.getElementById('ov');ov.querySelector('.panel').innerHTML=`<div class="big">☠️</div><h2>Kena Lava!</h2><div class="score-line">Tinggi: <b>${score} m</b></div><p>Terbaik: ${best} m</p><button class="btn" id="startBtn">Coba Lagi</button>`;ov.classList.remove('hide');bind();}
+function loop(){
+  if(!running)return;
+  // input
+  if(left)p.vx=-5;else if(right)p.vx=5;else p.vx*=0.8;
+  p.x+=p.vx;if(p.x<-p.w)p.x=W;if(p.x>W)p.x=-p.w;
+  p.vy+=GRAV;p.y+=p.vy;
+  // camera follows up
+  if(p.y-camY<H*0.4){camY=p.y-H*0.4;}
+  maxClimb=Math.max(maxClimb,-camY);score=Math.floor(maxClimb/10);
+  document.getElementById('score').textContent=score;
+  // lava rises (faster over time)
+  lava-=0.35+score*0.0016;
+  // platform collision (falling only)
+  plats.forEach(pl=>{
+    if(pl.t==='move'){pl.x+=pl.dir*1.4;if(pl.x<0||pl.x+pl.w>W)pl.dir*=-1;}
+    if(p.vy>0&&p.x+p.w>pl.x&&p.x<pl.x+pl.w&&p.y+p.h>pl.y&&p.y+p.h<pl.y+pl.h+p.vy&&!pl.used){
+      if(pl.t==='break'){pl.used=true;pl.fall=true;}
+      else{p.vy=JUMP;}
+    }
+  });
+  // recycle platforms above
+  for(let i=plats.length-1;i>=0;i--){const pl=plats[i];if(pl.fall){pl.y+=4;}if(pl.y-camY>H+30)plats.splice(i,1);}
+  let topY=Math.min(...plats.map(pl=>pl.y));
+  while(topY>camY-40){topY-=Math.random()*40+62;plats.push(makePlat(topY));}
+  // death
+  if(p.y>lava){end();return;}
+  // ---- draw ----
+  x.clearRect(0,0,W,H);
+  const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1a0e2e');g.addColorStop(1,'#2a0e1e');x.fillStyle=g;x.fillRect(0,0,W,H);
+  // platforms
+  plats.forEach(pl=>{const sy=pl.y-camY;if(sy<-20||sy>H+20)return;x.fillStyle=pl.t==='break'?'#a86b3c':pl.t==='move'?'#00e5ff':'#7c5cff';roundRect(pl.x,sy,pl.w,pl.h,6);x.fill();});
+  // player
+  const py=p.y-camY;x.fillStyle='#ffd23f';roundRect(p.x,py,p.w,p.h,8);x.fill();x.fillStyle='#2a0e1e';x.fillRect(p.x+8,py+10,5,5);x.fillRect(p.x+p.w-13,py+10,5,5);
+  // lava
+  const ly=lava-camY;const lg=x.createLinearGradient(0,ly,0,H);lg.addColorStop(0,'#ff6a00');lg.addColorStop(1,'#ff2d2d');x.fillStyle=lg;x.fillRect(0,ly,W,H-ly+50);
+  x.fillStyle='rgba(255,200,0,.5)';for(let i=0;i<W;i+=24){x.beginPath();x.arc(i+12,ly+Math.sin(Date.now()/200+i)*3,6,0,7);x.fill();}
+  requestAnimationFrame(loop);
+}
+function roundRect(rx,ry,rw,rh,r){x.beginPath();x.moveTo(rx+r,ry);x.arcTo(rx+rw,ry,rx+rw,ry+rh,r);x.arcTo(rx+rw,ry+rh,rx,ry+rh,r);x.arcTo(rx,ry+rh,rx,ry,r);x.arcTo(rx,ry,rx+rw,ry,r);x.closePath();}
+function start(){reset();running=true;document.getElementById('ov').classList.add('hide');loop();}
+function bind(){document.getElementById('startBtn').onclick=start;}
+bind();
+window.addEventListener('keydown',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')left=true;if(e.code==='ArrowRight'||e.code==='KeyD')right=true;});
+window.addEventListener('keyup',e=>{if(e.code==='ArrowLeft'||e.code==='KeyA')left=false;if(e.code==='ArrowRight'||e.code==='KeyD')right=false;});
+function touch(e){const r=c.getBoundingClientRect();const tx=e.touches?e.touches[0].clientX:e.clientX;left=tx-r.left<r.width/2;right=!left;}
+c.addEventListener('pointerdown',touch);c.addEventListener('pointermove',e=>{if(e.pressure>0||e.buttons)touch(e);});
+c.addEventListener('pointerup',()=>{left=right=false;});
+if(window.DeviceOrientationEvent){window.addEventListener('deviceorientation',e=>{if(e.gamma==null)return;left=e.gamma<-6;right=e.gamma>6;});}
+document.getElementById('resetBtn').onclick=()=>{localStorage.removeItem(KEY);best=0;document.getElementById('best').textContent=0;};
+</script>
+</body>
+</html>
